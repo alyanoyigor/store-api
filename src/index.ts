@@ -10,7 +10,8 @@ app.use(express.urlencoded());
 app.use(express.json());
 
 app.use('/api', router);
-app.use('*', (req, res) => {
+
+app.use('*', (_req, res) => {
   res.status(404).json({
     message: 'Not found',
   });

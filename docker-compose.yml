@@ -4,14 +4,14 @@ services:
     restart: always
     build: .
     ports:
-      - "80:4000"
+      - '80:4000'
     volumes:
       - ./src:/app/src
     env_file: .env
   basic_mongo:
     image: mongo
     ports:
-      - "27017:27017"
+      - '27017:27017'
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=root

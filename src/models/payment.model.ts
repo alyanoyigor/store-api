@@ -6,7 +6,7 @@ const paymentSchema = new Schema(
     status: {
       type: String,
       enum: ['created', 'done', 'canceled'],
-      required: true,
+      default: 'created',
     },
   },
   { timestamps: true }
