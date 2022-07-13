@@ -26,27 +26,6 @@ class CartController {
     }
   }
 
-  async updatePayment(req: Request, res: Response) {
-    try {
-      const payment = await PaymentModel.findById(req.params.id);
-
-      const model = new PaymentModel(payment);
-      const updatedPayment = model.set(req.body);
-      await model.save();
-
-      if (req.body.status === PaymentStatus.done) {
-        const cart = await CartModel.findById(updatedPayment.cartId);
-        const cartModel = new CartModel(cart);
-        cartModel.set({ status: CartStatus.payed });
-        await cartModel.save();
-      }
-
-      return formatSuccessResponse(res, updatedPayment);
-    } catch (error: any) {
-      return formatErrorResponse(res, error?.message || error);
-    }
-  }
-
   updateProductsPrice(cart: TCart) {
     const products = cart.products;
 
@@ -65,19 +44,37 @@ class CartController {
     });
   }
 
-  async updateCart(req: Request, res: Response) {
+  async deleteCart(req: Request, res: Response) {
     try {
       const cart = await CartModel.findById(req.params.id);
 
       const model = new CartModel(cart);
-      const updatedCart = model.set(req.body);
+      const updatedCart = model.set({ status: CartStatus.deleted });
+      await model.save();
 
-      if (req.body.status === CartStatus.deleted) {
-        const payment = await PaymentModel.findOne({ cartId: updatedCart.id });
-        const paymentModel = new PaymentModel(payment);
-        paymentModel.set({ status: PaymentStatus.canceled });
-        await paymentModel.save();
+      await PaymentModel.findOneAndUpdate(
+        { cartId: updatedCart.id },
+        { status: PaymentStatus.canceled }
+      );
+
+      this.createCart({ userId: updatedCart.userId });
+
+      return formatSuccessResponse(res, updatedCart);
+    } catch (error) {
+      return formatErrorResponse(res, error);
+    }
+  }
+
+  async updateCart(req: Request, res: Response) {
+    try {
+      const cart = await CartModel.findById(req.params.id);
+
+      if (cart?.status === CartStatus.deleted) {
+        throw new Error('Cart was deleted');
       }
+
+      const model = new CartModel(cart);
+      const updatedCart = model.set(req.body);
 
       const productList = this.updateProductsPrice(
         updatedCart as unknown as TCart

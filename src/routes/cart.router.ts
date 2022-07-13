@@ -5,9 +5,6 @@ const cartRouter = express.Router();
 const cartController = new CartController();
 
 cartRouter.patch('/:id', cartController.updateCart.bind(cartController));
-cartRouter.patch(
-  '/payment/:id',
-  cartController.updatePayment.bind(cartController)
-);
+cartRouter.delete('/:id', cartController.deleteCart.bind(cartController));
 
 export default cartRouter;
