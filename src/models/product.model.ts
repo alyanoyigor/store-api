@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose';
+import { TProduct } from '../types';
 
-const productSchema = new Schema(
+const productSchema = new Schema<TProduct>(
   {
     name: { type: String, required: true },
     category: { type: String, required: true },
