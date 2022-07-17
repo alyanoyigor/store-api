@@ -28,7 +28,10 @@ class CartController {
 
   async updateCart(req: Request, res: Response) {
     try {
-      const cartData = this.cartService.updateCart(req.body, req.params.id);
+      const cartData = await this.cartService.updateCart(
+        req.body,
+        req.params.id
+      );
       return formatSuccessResponse(res, cartData);
     } catch (error) {
       return formatErrorResponse(res, error);

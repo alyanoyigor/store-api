@@ -1,4 +1,4 @@
 # TODO
 [x] Add get route for cart router
-[] Create service for Cart Controller (in service DeleteCartFlow)
-[] Remove delete route and paste that logic into patch (cart router)
+[x] Create service for Cart Controller (in service DeleteCartFlow)
+[x] Remove delete route and paste that logic into patch (cart router)

@@ -21,7 +21,7 @@ class CartService {
 
       this.paymentService.createPayment({ cartId: newCart.id });
 
-      return cart;
+      return newCart;
     } catch (error) {
       throw new Error(error as string);
     }
