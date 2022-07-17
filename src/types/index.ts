@@ -8,13 +8,15 @@ export type TCartProduct = {
 };
 
 export type TCart = {
+  _id: string;
   userId: typeof Schema.Types.ObjectId;
-  products?: TCartProduct[];
+  products: TCartProduct[];
   status?: CartStatus.active | CartStatus.payed | CartStatus.deleted;
 };
 
 export type TPayment = {
   cartId: Schema.Types.ObjectId;
+  _id?: string;
   status?: PaymentStatus.canceled | PaymentStatus.created | PaymentStatus.done;
 };
 

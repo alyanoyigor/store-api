@@ -1,39 +1,27 @@
 import { Request, Response } from 'express';
-import { CartStatus, PaymentStatus } from '../enums';
-import PaymentModel from '../models/payment.model';
-import CartModel from '../models/cart.model';
 import {
   formatSuccessResponse,
   formatErrorResponse,
 } from '../services/http.service';
-import { TPayment } from '../types';
+import PaymentService from '../services/payment.service';
 
 class PaymentController {
-  async createPayment(data: TPayment) {
+  constructor(private paymentService: PaymentService = new PaymentService()) {}
+
+  async createPayment(req: Request, res: Response) {
     try {
-      const payment = new PaymentModel(data);
-      await payment.save();
-      return payment;
+      const paymentData = this.paymentService.createPayment(req.body);
+      return formatSuccessResponse(res, paymentData);
     } catch (error) {
-      console.log(error);
+      return formatErrorResponse(res, error);
     }
   }
 
   async updatePayment(req: Request, res: Response) {
     try {
-      const payment = await PaymentModel.findById(req.params.id);
-
-      const model = new PaymentModel(payment);
-      const updatedPayment = model.set(req.body);
-      await model.save();
-
-      if (req.body.status === PaymentStatus.done) {
-        const cart = await CartModel.findById(updatedPayment.cartId);
-        const cartModel = new CartModel(cart);
-        cartModel.set({ status: CartStatus.payed });
-        await cartModel.save();
-      }
-
+      const updatedPayment = await this.paymentService.updatePayment(req.body, {
+        _id: req.params.id,
+      });
       return formatSuccessResponse(res, updatedPayment);
     } catch (error: any) {
       return formatErrorResponse(res, error?.message || error);
