@@ -19,7 +19,7 @@ class CartService {
       const newCart = new CartModel(data);
       await newCart.save();
 
-      this.paymentService.createPayment({ cartId: newCart.id });
+      await this.paymentService.createPayment({ cartId: newCart.id });
 
       return newCart;
     } catch (error) {
@@ -28,8 +28,7 @@ class CartService {
   }
 
   async findCartByParam(param: Partial<TCart>) {
-    const cart = await CartModel.findOne(param);
-    return cart;
+    return await CartModel.findOne(param);
   }
 
   updateProductsPrice(products: TCartProduct[]) {
@@ -45,13 +44,7 @@ class CartService {
   }
 
   async getCart(id: string) {
-    const cart = await this.findCartByParam({ _id: id });
-
-    if (!cart) {
-      throw new Error('Invalid cart id!');
-    }
-
-    return cart;
+    return await this.findCartByParam({ _id: id });
   }
 
   validateCartBeforeUpdate(status: CartStatus | undefined) {

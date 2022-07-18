@@ -20,6 +20,11 @@ class CartController {
   async getCart(req: Request, res: Response) {
     try {
       const cartData = await this.cartService.getCart(req.params.id);
+      
+      if (!cartData) {
+        throw new Error('Invalid cart id!');
+      }
+  
       return formatSuccessResponse(res, cartData);
     } catch (error) {
       return formatErrorResponse(res, error);

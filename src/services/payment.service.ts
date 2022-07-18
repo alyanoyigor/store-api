@@ -17,7 +17,7 @@ class PaymentService {
     const updatedPayment = model.set(data);
     await model.save();
 
-    if (data.status === PaymentStatus.done) {
+    if (data.status === PaymentStatus.done) { 
       const cart = await CartModel.findById(updatedPayment.cartId);
       const cartModel = new CartModel(cart);
       cartModel.set({ status: CartStatus.payed });

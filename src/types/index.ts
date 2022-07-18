@@ -11,13 +11,13 @@ export type TCart = {
   _id: string;
   userId: typeof Schema.Types.ObjectId;
   products: TCartProduct[];
-  status?: CartStatus.active | CartStatus.payed | CartStatus.deleted;
+  status?: CartStatus;
 };
 
 export type TPayment = {
   cartId: Schema.Types.ObjectId;
   _id?: string;
-  status?: PaymentStatus.canceled | PaymentStatus.created | PaymentStatus.done;
+  status?: PaymentStatus;
 };
 
 export type TProduct = {
