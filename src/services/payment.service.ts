@@ -4,6 +4,8 @@ import PaymentModel from '../models/payment.model';
 import { TPayment } from '../types';
 
 class PaymentService {
+  constructor(private cartModel: CartModel = new CartModel()) {}
+
   async createPayment(data: TPayment) {
     const payment = new PaymentModel(data);
     await payment.save();
@@ -16,12 +18,20 @@ class PaymentService {
     const model = new PaymentModel(payment);
     const updatedPayment = model.set(data);
     await model.save();
+    return updatedPayment;
+  }
 
-    if (data.status === PaymentStatus.done) { 
-      const cart = await CartModel.findById(updatedPayment.cartId);
-      const cartModel = new CartModel(cart);
-      cartModel.set({ status: CartStatus.payed });
-      await cartModel.save();
+  async runUpdatePaymentProcess(
+    data: Partial<TPayment>,
+    findParam: Partial<TPayment>
+  ) {
+    const updatedPayment = await this.updatePayment(data, findParam);
+
+    if (updatedPayment.status === PaymentStatus.done) {
+      this.cartModel.updateCart(
+        { status: CartStatus.payed },
+        { _id: updatedPayment.cartId }
+      );
     }
 
     return updatedPayment;

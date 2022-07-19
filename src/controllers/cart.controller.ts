@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Types } from 'mongoose';
 import CartService from '../services/cart.service';
 import {
   formatErrorResponse,
@@ -19,12 +20,15 @@ class CartController {
 
   async getCart(req: Request, res: Response) {
     try {
-      const cartData = await this.cartService.getCart(req.params.id);
-      
+      const id = new Types.ObjectId(req.params.id);
+      const cartData = await this.cartService.getCart({
+        _id: id,
+      });
+
       if (!cartData) {
         throw new Error('Invalid cart id!');
       }
-  
+
       return formatSuccessResponse(res, cartData);
     } catch (error) {
       return formatErrorResponse(res, error);
@@ -33,10 +37,10 @@ class CartController {
 
   async updateCart(req: Request, res: Response) {
     try {
-      const cartData = await this.cartService.updateCart(
-        req.body,
-        req.params.id
-      );
+      const id = new Types.ObjectId(req.params.id);
+      const cartData = await this.cartService.updateCart(req.body, {
+        _id: id,
+      });
       return formatSuccessResponse(res, cartData);
     } catch (error) {
       return formatErrorResponse(res, error);

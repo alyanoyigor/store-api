@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { CartStatus, PaymentStatus } from '../enums';
 import CartModel from '../models/cart.model';
 import ProductModel from '../models/product.model';
@@ -6,29 +6,28 @@ import { TCart, TCartProduct } from '../types';
 import PaymentService from './payment.service';
 
 class CartService {
-  constructor(private paymentService: PaymentService = new PaymentService()) {}
+  constructor(
+    private paymentService: PaymentService = new PaymentService(),
+    private cartModel: CartModel = new CartModel()
+  ) {}
 
   async createCart(data: TCart) {
     try {
-      const cart = await this.findCartByParam({ userId: data.userId });
+      const existingCart = await this.cartModel.findCartByParam({
+        userId: data.userId,
+      });
 
-      if (cart) {
+      if (existingCart) {
         throw new Error('Cart already exist!');
       }
 
-      const newCart = new CartModel(data);
-      await newCart.save();
+      const cart = await this.cartModel.createCart(data);
+      await this.paymentService.createPayment({ cartId: cart.id });
 
-      await this.paymentService.createPayment({ cartId: newCart.id });
-
-      return newCart;
+      return cart;
     } catch (error) {
       throw new Error(error as string);
     }
-  }
-
-  async findCartByParam(param: Partial<TCart>) {
-    return await CartModel.findOne(param);
   }
 
   updateProductsPrice(products: TCartProduct[]) {
@@ -43,8 +42,8 @@ class CartService {
     });
   }
 
-  async getCart(id: string) {
-    return await this.findCartByParam({ _id: id });
+  async getCart(param: Partial<TCart>) {
+    return await this.cartModel.findCartByParam(param);
   }
 
   validateCartBeforeUpdate(status: CartStatus | undefined) {
@@ -62,30 +61,48 @@ class CartService {
     }
   }
 
-  async updateCart(data: Partial<TCart>, id: string) {
-    const cart = await this.findCartByParam({ _id: id });
-    this.validateCartBeforeUpdate(cart?.status);
+  async updateCart(data: Partial<TCart>, param: Pick<TCart, '_id'>) {
+    const cart = await this.cartModel.updateCart(data, param);
+    this.validateCartBeforeUpdate(cart.status);
 
-    const model = new CartModel(cart);
-    const updatedCart = model.set(data);
-
-    let changedCart;
-    if (data.products?.length === 0 || data.status === CartStatus.deleted) {
-      changedCart = updatedCart.set({ status: CartStatus.deleted });
-      this.paymentService.updatePayment(
-        { status: PaymentStatus.canceled },
-        { cartId: id as unknown as ObjectId }
-      );
+    if (this.isCartEmpty(cart)) {
+      await this.emptyCartHandler(cart, param._id);
     } else {
-      const productList = this.updateProductsPrice(updatedCart.products);
-      const products = await Promise.all(productList);
-
-      changedCart = updatedCart.set({ products });
+      await this.updateProducts(cart);
     }
 
-    await model.save();
+    await cart.save();
 
-    return changedCart;
+    return cart;
+  }
+
+  private async updateProducts(
+    updatedCart: Document<unknown, any, TCart> &
+      TCart & {
+        _id: Types.ObjectId;
+      }
+  ) {
+    const productList = this.updateProductsPrice(updatedCart.products);
+    const products = await Promise.all(productList);
+    updatedCart.set({ products });
+  }
+
+  private async emptyCartHandler(
+    updatedCart: Document<unknown, any, TCart> &
+      TCart & {
+        _id: Types.ObjectId;
+      },
+    cartId: Types.ObjectId
+  ) {
+    updatedCart.set({ status: CartStatus.deleted });
+    await this.paymentService.updatePayment(
+      { status: PaymentStatus.canceled },
+      { cartId }
+    );
+  }
+
+  private isCartEmpty(cart: TCart) {
+    return cart.products.length === 0 || cart.status === CartStatus.deleted;
   }
 }
 

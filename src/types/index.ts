@@ -1,21 +1,21 @@
-import { Schema } from 'mongoose';
+import { Types } from 'mongoose';
 import { CartStatus, PaymentStatus } from '../enums';
 
 export type TCartProduct = {
-  productId: typeof Schema.Types.ObjectId;
+  productId: Types.ObjectId;
   quantity: number;
   total: number;
 };
 
 export type TCart = {
-  _id: string;
-  userId: typeof Schema.Types.ObjectId;
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
   products: TCartProduct[];
   status?: CartStatus;
 };
 
 export type TPayment = {
-  cartId: Schema.Types.ObjectId;
+  cartId: Types.ObjectId;
   _id?: string;
   status?: PaymentStatus;
 };
