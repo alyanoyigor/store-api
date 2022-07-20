@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema } from 'mongoose';
 import modelMixin from '../mixins/modelMixin';
 import { TCart, TCartProduct } from '../types';
 
@@ -36,7 +36,7 @@ class CartModel extends modelMixin<TCart>('Cart', cartSchema) {
   }
 
   async findCartByParam(param: Partial<TCart>) {
-    return await this.Model.findOne(param);
+    return await this.findByParam(param);
   }
 
   async updateCart(data: Partial<TCart>, param: Partial<TCart>) {

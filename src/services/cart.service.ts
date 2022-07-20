@@ -2,44 +2,28 @@ import { Document, Types } from 'mongoose';
 import { CartStatus, PaymentStatus } from '../enums';
 import CartModel from '../models/cart.model';
 import ProductModel from '../models/product.model';
+import PaymentModel from '../models/payment.model';
 import { TCart, TCartProduct } from '../types';
-import PaymentService from './payment.service';
 
 class CartService {
   constructor(
-    private paymentService: PaymentService = new PaymentService(),
-    private cartModel: CartModel = new CartModel()
+    private cartModel: CartModel = new CartModel(),
+    private paymentModel: PaymentModel = new PaymentModel()
   ) {}
 
   async createCart(data: TCart) {
-    try {
-      const existingCart = await this.cartModel.findCartByParam({
-        userId: data.userId,
-      });
-
-      if (existingCart) {
-        throw new Error('Cart already exist!');
-      }
-
-      const cart = await this.cartModel.createCart(data);
-      await this.paymentService.createPayment({ cartId: cart.id });
-
-      return cart;
-    } catch (error) {
-      throw new Error(error as string);
-    }
-  }
-
-  updateProductsPrice(products: TCartProduct[]) {
-    return products.map(async (productItem) => {
-      const product = await ProductModel.findById(productItem.productId);
-
-      if (!product) {
-        throw new Error('Invalid product id');
-      }
-
-      return { ...productItem, total: product.price * productItem.quantity };
+    const existingCart = await this.cartModel.findCartByParam({
+      userId: data.userId,
     });
+
+    if (existingCart) {
+      throw new Error('Cart already exist!');
+    }
+
+    const cart = await this.cartModel.createCart(data);
+    await this.paymentModel.createPayment({ cartId: cart.id });
+
+    return cart;
   }
 
   async getCart(param: Partial<TCart>) {
@@ -95,10 +79,22 @@ class CartService {
     cartId: Types.ObjectId
   ) {
     updatedCart.set({ status: CartStatus.deleted });
-    await this.paymentService.updatePayment(
+    await this.paymentModel.updatePayment(
       { status: PaymentStatus.canceled },
       { cartId }
     );
+  }
+  
+  private updateProductsPrice(products: TCartProduct[]) {
+    return products.map(async (productItem) => {
+      const product = await ProductModel.findById(productItem.productId);
+
+      if (!product) {
+        throw new Error('Invalid product id');
+      }
+
+      return { ...productItem, total: product.price * productItem.quantity };
+    });
   }
 
   private isCartEmpty(cart: TCart) {

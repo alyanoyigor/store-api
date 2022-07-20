@@ -4,21 +4,17 @@ import PaymentModel from '../models/payment.model';
 import { TPayment } from '../types';
 
 class PaymentService {
-  constructor(private cartModel: CartModel = new CartModel()) {}
+  constructor(
+    private paymentModel: PaymentModel = new PaymentModel(),
+    private cartModel: CartModel = new CartModel()
+  ) {}
 
   async createPayment(data: TPayment) {
-    const payment = new PaymentModel(data);
-    await payment.save();
-
-    return payment;
+    return await this.paymentModel.createPayment(data);
   }
 
-  async updatePayment(data: Partial<TPayment>, findParam: Partial<TPayment>) {
-    const payment = await PaymentModel.findOne(findParam);
-    const model = new PaymentModel(payment);
-    const updatedPayment = model.set(data);
-    await model.save();
-    return updatedPayment;
+  async updatePayment(data: Partial<TPayment>, param: Partial<TPayment>) {
+    return await this.paymentModel.updatePayment(data, param);
   }
 
   async runUpdatePaymentProcess(

@@ -1,11 +1,15 @@
 import express from 'express';
 import CartController from '../controllers/cart.controller';
+import CartModel from '../models/cart.model';
+import PaymentModel from '../models/payment.model';
 import CartService from '../services/cart.service';
-import PaymentService from '../services/payment.service';
 
 const cartRouter = express.Router();
-const paymentService = new PaymentService();
-const cartService = new CartService(paymentService);
+
+const cartModel = new CartModel();
+const paymentModel = new PaymentModel();
+
+const cartService = new CartService(cartModel, paymentModel);
 const cartController = new CartController(cartService);
 
 cartRouter.get('/:id', cartController.getCart.bind(cartController));
