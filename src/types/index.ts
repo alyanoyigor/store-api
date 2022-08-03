@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { CartStatus, PaymentStatus } from '../enums';
 
 export type TCartProduct = {
@@ -27,6 +27,22 @@ export type TProduct = {
 };
 
 export type TUser = {
+  _id?: string;
+  email: string;
+  name: string;
+  password: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  token?: string;
+};
+
+export type TUserInput = {
   name: string;
   email: string;
+  password: string;
+};
+
+export type Context = {
+  token?: string;
+  user?: Document<unknown, any, TUser> & TUser;
 };
